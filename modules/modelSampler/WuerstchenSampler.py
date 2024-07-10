@@ -203,7 +203,7 @@ class WuerstchenSampler(BaseModelSampler):
         torch_gc()
 
         # prepare timesteps
-        decoder_noise_scheduler.set_timesteps(10, device=self.train_device)
+        decoder_noise_scheduler.set_timesteps(32, device=self.train_device)
         timesteps = decoder_noise_scheduler.timesteps
 
         # prepare latent image
