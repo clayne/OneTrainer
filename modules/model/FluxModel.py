@@ -193,6 +193,8 @@ class FluxModel(BaseModel):
             apply_attention_mask: bool = False,
             pooled_text_encoder_1_output: Tensor = None,
             text_encoder_2_output: Tensor = None,
+            tokens_max_1: int = BaseModel.TOKEN_MAX_DEFAULT,
+            tokens_max_2: int = BaseModel.TOKEN_MAX_DEFAULT,
     ) -> tuple[Tensor, Tensor]:
         # tokenize prompt
         if tokens_1 is None and text is not None and self.tokenizer_1 is not None:
@@ -200,7 +202,7 @@ class FluxModel(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_1,
                 return_tensors="pt",
             )
             tokens_1 = tokenizer_output.input_ids.to(self.text_encoder_1.device)
@@ -210,7 +212,7 @@ class FluxModel(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_2,
                 return_tensors="pt",
             )
             tokens_2 = tokenizer_output.input_ids.to(self.text_encoder_2.device)
@@ -246,7 +248,7 @@ class FluxModel(BaseModel):
             )
             if text_encoder_2_output is None:
                 text_encoder_2_output = torch.zeros(
-                    size=(batch_size, 77, 4096),
+                    size=(batch_size, tokens_max_2, 4096),
                     device=train_device,
                     dtype=self.train_dtype.torch_dtype(),
                 )

@@ -336,9 +336,12 @@ class BaseStableDiffusion3Setup(
                 tokens_mask_1=batch.get("tokens_mask_1"),
                 tokens_mask_2=batch.get("tokens_mask_2"),
                 tokens_mask_3=batch.get("tokens_mask_3"),
-                text_encoder_1_layer_skip=config.text_encoder_layer_skip,
-                text_encoder_2_layer_skip=config.text_encoder_2_layer_skip,
-                text_encoder_3_layer_skip=config.text_encoder_3_layer_skip,
+                tokens_max_1=config.text_encoder.token_max,
+                tokens_max_2=config.text_encoder_2.token_max,
+                tokens_max_3=config.text_encoder_3.token_max,
+                text_encoder_1_layer_skip=config.text_encoder.layer_skip,
+                text_encoder_2_layer_skip=config.text_encoder_2.layer_skip,
+                text_encoder_3_layer_skip=config.text_encoder_3.layer_skip,
                 text_encoder_1_output=batch['text_encoder_1_hidden_state'] \
                     if 'text_encoder_1_hidden_state' in batch and not config.train_text_encoder_or_embedding() else None,
                 pooled_text_encoder_1_output=batch['text_encoder_1_pooled_state'] \
@@ -375,9 +378,9 @@ class BaseStableDiffusion3Setup(
                 #     batch_size=batch['latent_image'].shape[0],
                 #     rand=rand,
                 #     text="",
-                #     text_encoder_1_layer_skip=config.text_encoder_layer_skip,
-                #     text_encoder_2_layer_skip=config.text_encoder_2_layer_skip,
-                #     text_encoder_3_layer_skip=config.text_encoder_3_layer_skip,
+                #     text_encoder_1_layer_skip=config.text_encoder.layer_skip,
+                #     text_encoder_2_layer_skip=config.text_encoder_2.layer_skip,
+                #     text_encoder_3_layer_skip=config.text_encoder_3.layer_skip,
                 #     apply_attention_mask=config.prior.attention_mask,
                 # )
                 # negative_text_encoder_output = negative_text_encoder_output \

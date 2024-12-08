@@ -25,6 +25,8 @@ class BaseModelEmbedding:
 
 
 class BaseModel(metaclass=ABCMeta):
+    TOKEN_MAX_DEFAULT = 77
+
     model_type: ModelType
     parameters: NamedParameterGroupCollection | None
     optimizer: Optimizer | None

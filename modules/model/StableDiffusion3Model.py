@@ -223,6 +223,9 @@ class StableDiffusion3Model(BaseModel):
             text_encoder_2_output: Tensor = None,
             pooled_text_encoder_2_output: Tensor = None,
             text_encoder_3_output: Tensor = None,
+            tokens_max_1: int = BaseModel.TOKEN_MAX_DEFAULT,
+            tokens_max_2: int = BaseModel.TOKEN_MAX_DEFAULT,
+            tokens_max_3: int = BaseModel.TOKEN_MAX_DEFAULT,
     ) -> tuple[Tensor, Tensor]:
         # tokenize prompt
         if tokens_1 is None and text is not None and self.tokenizer_1 is not None:
@@ -230,7 +233,7 @@ class StableDiffusion3Model(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_1,
                 return_tensors="pt",
             )
             tokens_1 = tokenizer_output.input_ids.to(self.text_encoder_1.device)
@@ -241,7 +244,7 @@ class StableDiffusion3Model(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_2,
                 return_tensors="pt",
             )
             tokens_2 = tokenizer_output.input_ids.to(self.text_encoder_2.device)
@@ -252,7 +255,7 @@ class StableDiffusion3Model(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_3,
                 return_tensors="pt",
             )
             tokens_3 = tokenizer_output.input_ids.to(self.text_encoder_3.device)
@@ -276,7 +279,7 @@ class StableDiffusion3Model(BaseModel):
                 dtype=self.train_dtype.torch_dtype(),
             )
             text_encoder_1_output = torch.zeros(
-                size=(batch_size, 77, 768),
+                size=(batch_size, tokens_max_1, 768),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
@@ -304,7 +307,7 @@ class StableDiffusion3Model(BaseModel):
                 dtype=self.train_dtype.torch_dtype(),
             )
             text_encoder_2_output = torch.zeros(
-                size=(batch_size, 77, 1280),
+                size=(batch_size, tokens_max_2, 1280),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
@@ -326,7 +329,7 @@ class StableDiffusion3Model(BaseModel):
             )
             if text_encoder_3_output is None:
                 text_encoder_3_output = torch.zeros(
-                    size=(batch_size, 77, self.transformer.config.joint_attention_dim),
+                    size=(batch_size, tokens_max_3, self.transformer.config.joint_attention_dim),
                     device=train_device,
                     dtype=self.train_dtype.torch_dtype(),
                 )

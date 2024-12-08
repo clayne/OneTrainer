@@ -336,11 +336,13 @@ class TrainingTab:
         frame = ctk.CTkFrame(master=master, corner_radius=5)
         frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
         frame.grid_columnconfigure(0, weight=1)
+        row = 0
 
         # train text encoder
-        components.label(frame, 0, 0, "Train Text Encoder",
+        components.label(frame, row, 0, "Train Text Encoder",
                          tooltip="Enables training the text encoder model")
-        components.switch(frame, 0, 1, self.ui_state, "text_encoder.train")
+        components.switch(frame, row, 1, self.ui_state, "text_encoder.train")
+        row += 1
 
         # dropout
         components.label(frame, row, 0, "Dropout Probability",
@@ -349,20 +351,29 @@ class TrainingTab:
         row += 1
 
         # train text encoder epochs
-        components.label(frame, 2, 0, "Stop Training After",
+        components.label(frame, row, 0, "Stop Training After",
                          tooltip="When to stop training the text encoder")
-        components.time_entry(frame, 2, 1, self.ui_state, "text_encoder.stop_training_after",
+        components.time_entry(frame, row, 1, self.ui_state, "text_encoder.stop_training_after",
                               "text_encoder.stop_training_after_unit", supports_time_units=False)
+        row += 1
 
         # text encoder learning rate
-        components.label(frame, 3, 0, "Text Encoder Learning Rate",
+        components.label(frame, row, 0, "Text Encoder Learning Rate",
                          tooltip="The learning rate of the text encoder. Overrides the base learning rate")
-        components.entry(frame, 3, 1, self.ui_state, "text_encoder.learning_rate")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder.learning_rate")
+        row += 1
 
         # text encoder layer skip (clip skip)
-        components.label(frame, 4, 0, "Clip Skip",
+        components.label(frame, row, 0, "Clip Skip",
                          tooltip="The number of additional clip layers to skip. 0 = the model default")
-        components.entry(frame, 4, 1, self.ui_state, "text_encoder_layer_skip")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder.layer_skip")
+        row += 1
+
+        # text encoder token limit
+        components.label(frame, row, 0, "Token Limit",
+                         tooltip="The maximum number of tokens to train")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder.token_max")
+        row += 1
 
     def __create_text_encoder_1_frame(self, master, row, supports_include: bool = False):
         frame = ctk.CTkFrame(master=master, corner_radius=5)
@@ -411,7 +422,13 @@ class TrainingTab:
         # text encoder layer skip (clip skip)
         components.label(frame, row, 0, "Text Encoder 1 Clip Skip",
                          tooltip="The number of additional clip layers to skip. 0 = the model default")
-        components.entry(frame, row, 1, self.ui_state, "text_encoder_layer_skip")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder.layer_skip")
+        row += 1
+
+        # text encoder token limit
+        components.label(frame, row, 0, "Text Encoder 1 Token Limit",
+                         tooltip="The maximum number of tokens to train")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder.token_max")
         row += 1
 
     def __create_text_encoder_2_frame(self, master, row, supports_include: bool = False):
@@ -461,7 +478,13 @@ class TrainingTab:
         # text encoder layer skip (clip skip)
         components.label(frame, row, 0, "Text Encoder 2 Clip Skip",
                          tooltip="The number of additional clip layers to skip. 0 = the model default")
-        components.entry(frame, row, 1, self.ui_state, "text_encoder_2_layer_skip")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder_2.layer_skip")
+        row += 1
+
+        # text encoder token limit
+        components.label(frame, row, 0, "Text Encoder 2 Token Limit",
+                         tooltip="The maximum number of tokens to train")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder_2.token_max")
         row += 1
 
     def __create_text_encoder_3_frame(self, master, row, supports_include: bool = False):
@@ -511,22 +534,32 @@ class TrainingTab:
         # text encoder layer skip (clip skip)
         components.label(frame, row, 0, "Text Encoder 3 Clip Skip",
                          tooltip="The number of additional clip layers to skip. 0 = the model default")
-        components.entry(frame, row, 1, self.ui_state, "text_encoder_3_layer_skip")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder_3.layer_skip")
+        row += 1
+
+        # text encoder token limit
+        components.label(frame, row, 0, "Text Encoder 3 Token Limit",
+                         tooltip="The maximum number of tokens to train")
+        components.entry(frame, row, 1, self.ui_state, "text_encoder_3.token_max")
         row += 1
 
     def __create_embedding_frame(self, master, row):
         frame = ctk.CTkFrame(master=master, corner_radius=5)
         frame.grid(row=row, column=0, padx=5, pady=5, sticky="nsew")
+        frame.grid_columnconfigure(0, weight=1)
+        row = 0
 
         # embedding learning rate
-        components.label(frame, 0, 0, "Embeddings Learning Rate",
+        components.label(frame, row, 0, "Embeddings Learning Rate",
                          tooltip="The learning rate of embeddings. Overrides the base learning rate")
-        components.entry(frame, 0, 1, self.ui_state, "embedding_learning_rate")
+        components.entry(frame, row, 1, self.ui_state, "embedding_learning_rate")
+        row += 1
 
         # preserve embedding norm
-        components.label(frame, 1, 0, "Preserve Embedding Norm",
+        components.label(frame, row, 0, "Preserve Embedding Norm",
                          tooltip="Rescales each trained embedding to the median embedding norm")
-        components.switch(frame, 1, 1, self.ui_state, "preserve_embedding_norm")
+        components.switch(frame, row, 1, self.ui_state, "preserve_embedding_norm")
+        row += 1
 
     def __create_unet_frame(self, master, row):
         frame = ctk.CTkFrame(master=master, corner_radius=5)

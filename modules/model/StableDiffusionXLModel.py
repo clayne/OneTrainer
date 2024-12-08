@@ -175,13 +175,15 @@ class StableDiffusionXLModel(BaseModel):
             text_encoder_1_dropout_probability: float | None = None,
             text_encoder_2_dropout_probability: float | None = None,
             pooled_text_encoder_2_output: Tensor = None,
+            tokens_max_1: int = BaseModel.TOKEN_MAX_DEFAULT,
+            tokens_max_2: int = BaseModel.TOKEN_MAX_DEFAULT,
     ):
         if tokens_1 is None and text is not None:
             tokenizer_output = self.tokenizer_1(
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_1,
                 return_tensors="pt",
             )
             tokens_1 = tokenizer_output.input_ids.to(self.text_encoder_1.device)
@@ -191,7 +193,7 @@ class StableDiffusionXLModel(BaseModel):
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max_2,
                 return_tensors="pt",
             )
             tokens_2 = tokenizer_output.input_ids.to(self.text_encoder_2.device)

@@ -30,9 +30,9 @@ class SampleConfig(BaseConfig):
         super().__init__(data)
 
     def from_train_config(self, train_config):
-        self.text_encoder_1_layer_skip = train_config.text_encoder_layer_skip
-        self.text_encoder_2_layer_skip = train_config.text_encoder_2_layer_skip
-        self.text_encoder_3_layer_skip = train_config.text_encoder_3_layer_skip
+        self.text_encoder_1_layer_skip = train_config.text_encoder.layer_skip
+        self.text_encoder_2_layer_skip = train_config.text_encoder_2.layer_skip
+        self.text_encoder_3_layer_skip = train_config.text_encoder_3.layer_skip
         self.prior_attention_mask = train_config.prior.attention_mask
         self.force_last_timestep = train_config.rescale_noise_scheduler_to_zero_terminal_snr
 

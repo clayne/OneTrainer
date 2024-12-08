@@ -278,8 +278,10 @@ class BaseFluxSetup(
                 tokens_1=batch.get("tokens_1"),
                 tokens_2=batch.get("tokens_2"),
                 tokens_mask_2=batch.get("tokens_mask_2"),
-                text_encoder_1_layer_skip=config.text_encoder_layer_skip,
-                text_encoder_2_layer_skip=config.text_encoder_2_layer_skip,
+                tokens_max_1=config.text_encoder.token_max,
+                tokens_max_2=config.text_encoder_2.token_max,
+                text_encoder_1_layer_skip=config.text_encoder.layer_skip,
+                text_encoder_2_layer_skip=config.text_encoder_2.layer_skip,
                 pooled_text_encoder_1_output=batch['text_encoder_1_pooled_state'] \
                     if 'text_encoder_1_pooled_state' in batch and not config.train_text_encoder_or_embedding() else None,
                 text_encoder_2_output=batch['text_encoder_2_hidden_state'] \
@@ -309,8 +311,8 @@ class BaseFluxSetup(
                 #     batch_size=batch['latent_image'].shape[0],
                 #     rand=rand,
                 #     text="",
-                #     text_encoder_1_layer_skip=config.text_encoder_layer_skip,
-                #     text_encoder_2_layer_skip=config.text_encoder_2_layer_skip,
+                #     text_encoder_1_layer_skip=config.text_encoder.layer_skip,
+                #     text_encoder_2_layer_skip=config.text_encoder_2.layer_skip,
                 #     apply_attention_mask=config.prior.attention_mask,
                 # )
                 # negative_text_encoder_output = negative_text_encoder_output \

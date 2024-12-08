@@ -161,6 +161,8 @@ class TrainOptimizerConfig(BaseConfig):
 
 
 class TrainModelPartConfig(BaseConfig):
+    TOKEN_MAX_DEFAULT = 77
+
     model_name: str
     include: bool
     train: bool
@@ -172,6 +174,8 @@ class TrainModelPartConfig(BaseConfig):
     train_embedding: bool
     attention_mask: bool
     guidance_scale: float
+    layer_skip: int
+    token_max: int
 
     def __init__(self, data: list[(str, Any, type, bool)]):
         super().__init__(data)
@@ -192,6 +196,8 @@ class TrainModelPartConfig(BaseConfig):
         data.append(("train_embedding", True, bool, False))
         data.append(("attention_mask", False, bool, False))
         data.append(("guidance_scale", 1.0, float, False))
+        data.append(("layer_skip", 0, int, False))
+        data.append(("token_max", TrainModelPartConfig.TOKEN_MAX_DEFAULT, int, False))
 
         return TrainModelPartConfig(data)
 
@@ -324,15 +330,12 @@ class TrainConfig(BaseConfig):
 
     # text encoder
     text_encoder: TrainModelPartConfig
-    text_encoder_layer_skip: int
 
     # text encoder 2
     text_encoder_2: TrainModelPartConfig
-    text_encoder_2_layer_skip: int
 
     # text encoder 3
     text_encoder_3: TrainModelPartConfig
-    text_encoder_3_layer_skip: int
 
     # vae
     vae: TrainModelPartConfig
@@ -401,7 +404,7 @@ class TrainConfig(BaseConfig):
     def __init__(self, data: list[(str, Any, type, bool)]):
         super().__init__(
             data,
-            config_version=6,
+            config_version=7,
             config_migrations={
                 0: self.__migration_0,
                 1: self.__migration_1,
@@ -409,6 +412,7 @@ class TrainConfig(BaseConfig):
                 3: self.__migration_3,
                 4: self.__migration_4,
                 5: self.__migration_5,
+                6: self.__migration_6,
             }
         )
 
@@ -571,6 +575,18 @@ class TrainConfig(BaseConfig):
             migrated_data["save_every"] = migrated_data.pop("save_after")
         if "save_after_unit" in migrated_data:
             migrated_data["save_every_unit"] = migrated_data.pop("save_after_unit")
+
+        return migrated_data
+
+    def __migration_6(self, data: dict) -> dict:
+        migrated_data = data.copy()
+
+        if "text_encoder_layer_skip" in migrated_data:
+            migrated_data["text_encoder"]["layer_skip"] = migrated_data.pop("text_encoder_layer_skip")
+        if "text_encoder_2_layer_skip" in migrated_data:
+            migrated_data["text_encoder_2"]["layer_skip"] = migrated_data.pop("text_encoder_2_layer_skip")
+        if "text_encoder_3_layer_skip" in migrated_data:
+            migrated_data["text_encoder_3"]["layer_skip"] = migrated_data.pop("text_encoder_3_layer_skip")
 
         return migrated_data
 
@@ -793,7 +809,6 @@ class TrainConfig(BaseConfig):
         text_encoder.learning_rate = None
         text_encoder.weight_dtype = DataType.NONE
         data.append(("text_encoder", text_encoder, TrainModelPartConfig, False))
-        data.append(("text_encoder_layer_skip", 0, int, False))
 
         # text encoder 2
         text_encoder_2 = TrainModelPartConfig.default_values()
@@ -803,7 +818,6 @@ class TrainConfig(BaseConfig):
         text_encoder_2.learning_rate = None
         text_encoder_2.weight_dtype = DataType.NONE
         data.append(("text_encoder_2", text_encoder_2, TrainModelPartConfig, False))
-        data.append(("text_encoder_2_layer_skip", 0, int, False))
 
         # text encoder 3
         text_encoder_3 = TrainModelPartConfig.default_values()
@@ -813,7 +827,6 @@ class TrainConfig(BaseConfig):
         text_encoder_3.learning_rate = None
         text_encoder_3.weight_dtype = DataType.NONE
         data.append(("text_encoder_3", text_encoder_3, TrainModelPartConfig, False))
-        data.append(("text_encoder_3_layer_skip", 0, int, False))
 
         # vae
         vae = TrainModelPartConfig.default_values()

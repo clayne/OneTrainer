@@ -195,13 +195,14 @@ class StableDiffusionModel(BaseModel):
             text_encoder_layer_skip: int = 0,
             text_encoder_dropout_probability: float | None = None,
             text_encoder_output: Tensor | None = None,
+            tokens_max: int = BaseModel.TOKEN_MAX_DEFAULT,
     ):
         if tokens is None:
             tokenizer_output = self.tokenizer(
                 text,
                 padding='max_length',
                 truncation=True,
-                max_length=77,
+                max_length=tokens_max,
                 return_tensors="pt",
             )
             tokens = tokenizer_output.input_ids.to(self.text_encoder.device)

@@ -188,7 +188,8 @@ class BaseStableDiffusionSetup(
                 batch_size=batch['latent_image'].shape[0],
                 rand=rand,
                 tokens=batch['tokens'],
-                text_encoder_layer_skip=config.text_encoder_layer_skip,
+                tokens_max=config.text_encoder.token_max,
+                text_encoder_layer_skip=config.text_encoder.layer_skip,
                 text_encoder_output=batch[
                     'text_encoder_hidden_state'] if not config.train_text_encoder_or_embedding() else None,
                 text_encoder_dropout_probability=config.text_encoder.dropout_probability,
@@ -209,7 +210,7 @@ class BaseStableDiffusionSetup(
                     batch_size=batch['latent_image'].shape[0],
                     rand=rand,
                     text="",
-                    text_encoder_layer_skip=config.text_encoder_layer_skip,
+                    text_encoder_layer_skip=config.text_encoder.layer_skip,
                 ).expand((scaled_latent_image.shape[0], -1, -1))
 
                 model.noise_scheduler.set_timesteps(config.align_prop_steps)

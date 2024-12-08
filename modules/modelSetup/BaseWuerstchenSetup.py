@@ -255,7 +255,8 @@ class BaseWuerstchenSetup(
                 rand=rand,
                 tokens=batch['tokens'],
                 tokens_mask=batch['tokens_mask'],
-                text_encoder_layer_skip=config.text_encoder_layer_skip,
+                tokens_max=config.text_encoder.token_max,
+                text_encoder_layer_skip=config.text_encoder.layer_skip,
                 text_encoder_output=batch[
                     'text_encoder_hidden_state'] if not config.train_text_encoder_or_embedding() else None,
                 pooled_text_encoder_output=batch[
