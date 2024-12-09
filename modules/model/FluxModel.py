@@ -231,7 +231,7 @@ class FluxModel(BaseModel):
         )
         if pooled_text_encoder_1_output is None:
             pooled_text_encoder_1_output = torch.zeros(
-                size=(batch_size, 768),
+                size=(batch_size, BaseModel.CLIP_L_EMBEDDING_DIM),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
@@ -248,7 +248,7 @@ class FluxModel(BaseModel):
             )
             if text_encoder_2_output is None:
                 text_encoder_2_output = torch.zeros(
-                    size=(batch_size, tokens_max_2, 4096),
+                    size=(batch_size, tokens_max_2, BaseModel.T5_XXL_EMBEDDING_DIM),
                     device=train_device,
                     dtype=self.train_dtype.torch_dtype(),
                 )

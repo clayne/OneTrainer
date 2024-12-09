@@ -26,6 +26,9 @@ class BaseModelEmbedding:
 
 class BaseModel(metaclass=ABCMeta):
     TOKEN_MAX_DEFAULT = 77
+    CLIP_L_EMBEDDING_DIM = 768
+    CLIP_G_EMBEDDING_DIM = 1280
+    T5_XXL_EMBEDDING_DIM = 4096
 
     model_type: ModelType
     parameters: NamedParameterGroupCollection | None

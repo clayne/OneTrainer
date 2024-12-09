@@ -274,12 +274,12 @@ class StableDiffusion3Model(BaseModel):
         )
         if text_encoder_1_output is None or pooled_text_encoder_1_output is None:
             pooled_text_encoder_1_output = torch.zeros(
-                size=(batch_size, 768),
+                size=(batch_size, BaseModel.CLIP_L_EMBEDDING_DIM),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
             text_encoder_1_output = torch.zeros(
-                size=(batch_size, tokens_max_1, 768),
+                size=(batch_size, tokens_max_1, BaseModel.CLIP_L_EMBEDDING_DIM),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
@@ -302,12 +302,12 @@ class StableDiffusion3Model(BaseModel):
         )
         if text_encoder_2_output is None or pooled_text_encoder_2_output is None:
             pooled_text_encoder_2_output = torch.zeros(
-                size=(batch_size, 1280),
+                size=(batch_size, BaseModel.CLIP_G_EMBEDDING_DIM),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
             text_encoder_2_output = torch.zeros(
-                size=(batch_size, tokens_max_2, 1280),
+                size=(batch_size, tokens_max_2, BaseModel.CLIP_G_EMBEDDING_DIM),
                 device=train_device,
                 dtype=self.train_dtype.torch_dtype(),
             )
