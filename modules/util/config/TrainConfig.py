@@ -161,9 +161,38 @@ class TrainOptimizerConfig(BaseConfig):
 
 
 class TrainModelPartConfig(BaseConfig):
+    model_name: str
+    train: bool
+    stop_training_after: int
+    stop_training_after_unit: TimeUnit
+    learning_rate: float
+    weight_dtype: DataType
+    attention_mask: bool
+    guidance_scale: float
+
+    def __init__(self, data: list[(str, Any, type, bool)]):
+        super().__init__(data)
+
+    @staticmethod
+    def default_values():
+        data = []
+
+        # name, default value, data type, nullable
+        data.append(("model_name", "", str, False))
+        data.append(("train", True, bool, False))
+        data.append(("stop_training_after", None, int, True))
+        data.append(("stop_training_after_unit", TimeUnit.NEVER, TimeUnit, False))
+        data.append(("learning_rate", None, float, True))
+        data.append(("weight_dtype", DataType.NONE, DataType, False))
+        data.append(("attention_mask", False, bool, False))
+        data.append(("guidance_scale", 1.0, float, False))
+
+        return TrainModelPartConfig(data)
+
+
+class TrainModelTextEncoderConfig(BaseConfig):
     TOKEN_MAX_DEFAULT = 77
 
-    model_name: str
     include: bool
     train: bool
     stop_training_after: int
@@ -172,8 +201,6 @@ class TrainModelPartConfig(BaseConfig):
     weight_dtype: DataType
     dropout_probability: float
     train_embedding: bool
-    attention_mask: bool
-    guidance_scale: float
     layer_skip: int
     token_max: int
 
@@ -185,7 +212,6 @@ class TrainModelPartConfig(BaseConfig):
         data = []
 
         # name, default value, data type, nullable
-        data.append(("model_name", "", str, False))
         data.append(("include", True, bool, False))
         data.append(("train", True, bool, False))
         data.append(("stop_training_after", None, int, True))
@@ -194,12 +220,10 @@ class TrainModelPartConfig(BaseConfig):
         data.append(("weight_dtype", DataType.NONE, DataType, False))
         data.append(("dropout_probability", 0.0, float, False))
         data.append(("train_embedding", True, bool, False))
-        data.append(("attention_mask", False, bool, False))
-        data.append(("guidance_scale", 1.0, float, False))
         data.append(("layer_skip", 0, int, False))
-        data.append(("token_max", TrainModelPartConfig.TOKEN_MAX_DEFAULT, int, False))
+        data.append(("token_max", TrainModelTextEncoderConfig.TOKEN_MAX_DEFAULT, int, False))
 
-        return TrainModelPartConfig(data)
+        return TrainModelTextEncoderConfig(data)
 
 
 class TrainEmbeddingConfig(BaseConfig):
@@ -329,13 +353,13 @@ class TrainConfig(BaseConfig):
     prior: TrainModelPartConfig
 
     # text encoder
-    text_encoder: TrainModelPartConfig
+    text_encoder: TrainModelTextEncoderConfig
 
     # text encoder 2
-    text_encoder_2: TrainModelPartConfig
+    text_encoder_2: TrainModelTextEncoderConfig
 
     # text encoder 3
-    text_encoder_3: TrainModelPartConfig
+    text_encoder_3: TrainModelTextEncoderConfig
 
     # vae
     vae: TrainModelPartConfig
@@ -802,31 +826,31 @@ class TrainConfig(BaseConfig):
         data.append(("prior", prior, TrainModelPartConfig, False))
 
         # text encoder
-        text_encoder = TrainModelPartConfig.default_values()
+        text_encoder = TrainModelTextEncoderConfig.default_values()
         text_encoder.train = True
         text_encoder.stop_training_after = 30
         text_encoder.stop_training_after_unit = TimeUnit.EPOCH
         text_encoder.learning_rate = None
         text_encoder.weight_dtype = DataType.NONE
-        data.append(("text_encoder", text_encoder, TrainModelPartConfig, False))
+        data.append(("text_encoder", text_encoder, TrainModelTextEncoderConfig, False))
 
         # text encoder 2
-        text_encoder_2 = TrainModelPartConfig.default_values()
+        text_encoder_2 = TrainModelTextEncoderConfig.default_values()
         text_encoder_2.train = True
         text_encoder_2.stop_training_after = 30
         text_encoder_2.stop_training_after_unit = TimeUnit.EPOCH
         text_encoder_2.learning_rate = None
         text_encoder_2.weight_dtype = DataType.NONE
-        data.append(("text_encoder_2", text_encoder_2, TrainModelPartConfig, False))
+        data.append(("text_encoder_2", text_encoder_2, TrainModelTextEncoderConfig, False))
 
         # text encoder 3
-        text_encoder_3 = TrainModelPartConfig.default_values()
+        text_encoder_3 = TrainModelTextEncoderConfig.default_values()
         text_encoder_3.train = True
         text_encoder_3.stop_training_after = 30
         text_encoder_3.stop_training_after_unit = TimeUnit.EPOCH
         text_encoder_3.learning_rate = None
         text_encoder_3.weight_dtype = DataType.NONE
-        data.append(("text_encoder_3", text_encoder_3, TrainModelPartConfig, False))
+        data.append(("text_encoder_3", text_encoder_3, TrainModelTextEncoderConfig, False))
 
         # vae
         vae = TrainModelPartConfig.default_values()
