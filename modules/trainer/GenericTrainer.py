@@ -270,11 +270,12 @@ class GenericTrainer(BaseTrainer):
             train_device: torch.device,
             sample_params_list: list[SampleConfig] = None,
     ):
+        torch_gc()
+
         # Special case for schedule-free optimizers.
         if self.config.optimizer.optimizer.is_schedule_free:
             torch.clear_autocast_cache()
             self.model.optimizer.eval()
-        torch_gc()
 
         self.callbacks.on_update_status("sampling")
 
@@ -418,13 +419,15 @@ class GenericTrainer(BaseTrainer):
         backup_name = f"{get_string_timestamp()}-backup-{train_progress.filename_string()}"
         backup_path = os.path.join(self.config.workspace_dir, "backup", backup_name)
 
-        # Special case for schedule-free optimizers.
-        if self.config.optimizer.optimizer.is_schedule_free:
-            torch.clear_autocast_cache()
-            self.model.optimizer.eval()
+        print_cb("Creating Backup " + backup_path)
+
+        self.model.to(self.temp_device)
 
         try:
-            print_cb("Creating Backup " + backup_path)
+            # Special case for schedule-free optimizers.
+            if self.config.optimizer.optimizer.is_schedule_free:
+                torch.clear_autocast_cache()
+                self.model.optimizer.eval()
 
             self.model_saver.save(
                 self.model,
@@ -435,6 +438,11 @@ class GenericTrainer(BaseTrainer):
             )
 
             self.__save_backup_config(backup_path)
+
+            # Special case for schedule-free optimizers.
+            if self.config.optimizer.optimizer.is_schedule_free:
+                torch.clear_autocast_cache()
+                self.model.optimizer.train()
         except Exception:
             traceback.print_exc()
             print("Could not save backup. Check your disk space!")
@@ -448,11 +456,9 @@ class GenericTrainer(BaseTrainer):
             if self.config.rolling_backup:
                 self.__prune_backups(self.config.rolling_backup_count)
 
+        print_cb('backup: setup_train_device')
         self.model_setup.setup_train_device(self.model, self.config)
-        # Special case for schedule-free optimizers.
-        if self.config.optimizer.optimizer.is_schedule_free:
-            torch.clear_autocast_cache()
-            self.model.optimizer.train()
+        print_cb('backup: setup_train_device (DONE)')
 
         torch_gc()
 
@@ -468,6 +474,8 @@ class GenericTrainer(BaseTrainer):
         )
         print_cb("Saving " + save_path)
 
+        self.model.to(self.temp_device)
+
         try:
             if self.model.ema:
                 self.model.ema.copy_ema_to(self.parameters, store_temp=True)
@@ -476,6 +484,7 @@ class GenericTrainer(BaseTrainer):
             if self.config.optimizer.optimizer.is_schedule_free:
                 torch.clear_autocast_cache()
                 self.model.optimizer.eval()
+
             self.model_saver.save(
                 model=self.model,
                 model_type=self.config.model_type,
@@ -483,6 +492,8 @@ class GenericTrainer(BaseTrainer):
                 output_model_destination=save_path,
                 dtype=self.config.output_dtype.torch_dtype()
             )
+
+            # Special case for schedule-free optimizers.
             if self.config.optimizer.optimizer.is_schedule_free:
                 torch.clear_autocast_cache()
                 self.model.optimizer.train()
@@ -498,6 +509,10 @@ class GenericTrainer(BaseTrainer):
         finally:
             if self.model.ema:
                 self.model.ema.copy_temp_to(self.parameters)
+
+        print_cb('backup: setup_train_device')
+        self.model_setup.setup_train_device(self.model, self.config)
+        print_cb('backup: setup_train_device (DONE)')
 
         torch_gc()
 
@@ -590,12 +605,17 @@ class GenericTrainer(BaseTrainer):
         lr_scheduler = None
         accumulated_loss = 0.0
         ema_loss = None
-        for _epoch in tqdm(range(train_progress.epoch, self.config.epochs, 1), desc="epoch"):
+        epoch_tqdm = tqdm(range(train_progress.epoch, self.config.epochs, 1), desc="epoch")
+        for _epoch in epoch_tqdm:
             self.callbacks.on_update_status("starting epoch/caching")
 
             if self.config.latent_caching:
+                epoch_tqdm.write('latent_caching: start_next_epoch')
                 self.data_loader.get_data_set().start_next_epoch()
+                epoch_tqdm.write('latent_caching: start_next_epoch (DONE)')
+                epoch_tqdm.write('latent_caching: setup_train_device')
                 self.model_setup.setup_train_device(self.model, self.config)
+                epoch_tqdm.write('latent_caching: setup_train_device (DONE)')
             else:
                 self.model_setup.setup_train_device(self.model, self.config)
                 self.data_loader.get_data_set().start_next_epoch()
@@ -653,20 +673,12 @@ class GenericTrainer(BaseTrainer):
 
                 if not has_gradient:
                     self.__execute_sample_during_training()
-                    transferred_to_temp_device = False
 
                     if self.commands.get_and_reset_backup_command():
-                        self.model.to(self.temp_device)
                         self.backup(train_progress, step_tqdm.write)
-                        transferred_to_temp_device = True
 
                     if self.commands.get_and_reset_save_command():
-                        self.model.to(self.temp_device)
                         self.save(train_progress, step_tqdm.write)
-                        transferred_to_temp_device = True
-
-                    if transferred_to_temp_device:
-                        self.model_setup.setup_train_device(self.model, self.config)
 
                 self.callbacks.on_update_status("training")
 
@@ -746,6 +758,8 @@ class GenericTrainer(BaseTrainer):
 
             if self.commands.get_stop_command():
                 return
+
+#            time.sleep(0.5)
 
     def end(self):
         if self.one_step_trained:
