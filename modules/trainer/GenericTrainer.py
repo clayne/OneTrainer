@@ -273,8 +273,12 @@ class GenericTrainer(BaseTrainer):
         # Special case for schedule-free optimizers.
         if self.config.optimizer.optimizer.is_schedule_free:
             torch.clear_autocast_cache()
+            print("optimizer_eval")
             self.model.optimizer.eval()
+            print("optimizer_eval (DONE)")
+        print("torch_gc")
         torch_gc()
+        print("torch_gc (DONE)")
 
         self.callbacks.on_update_status("sampling")
 
@@ -294,6 +298,7 @@ class GenericTrainer(BaseTrainer):
         if self.model.ema:
             self.model.ema.copy_ema_to(self.parameters, store_temp=True)
 
+        print("__sample_loop")
         self.__sample_loop(
             train_progress=train_progress,
             train_device=train_device,
@@ -301,6 +306,7 @@ class GenericTrainer(BaseTrainer):
             image_format=self.config.sample_image_format,
             is_custom_sample=is_custom_sample,
         )
+        print("__sample_loop (DONE)")
 
         if self.model.ema:
             self.model.ema.copy_temp_to(self.parameters)
@@ -315,13 +321,17 @@ class GenericTrainer(BaseTrainer):
                 folder_postfix=" - no-ema",
             )
 
+        print("setup_train_device")
         self.model_setup.setup_train_device(self.model, self.config)
+        print("setup_train_device (DONE)")
         # Special case for schedule-free optimizers.
         if self.config.optimizer.optimizer.is_schedule_free:
             torch.clear_autocast_cache()
             self.model.optimizer.train()
 
+        print("torch_gc")
         torch_gc()
+        print("torch_gc (DONE)")
 
     def __validate(self, train_progress: TrainProgress):
         if self.__needs_validate(train_progress):
@@ -656,17 +666,25 @@ class GenericTrainer(BaseTrainer):
                     transferred_to_temp_device = False
 
                     if self.commands.get_and_reset_backup_command():
-                        self.model.to(self.temp_device)
+                        if not transferred_to_temp_device:
+                            step_tqdm.write("self.model.to(self.temp_device)")
+                            self.model.to(self.temp_device)
+                            step_tqdm.write("self.model.to(self.temp_device) (DONE)")
+                            transferred_to_temp_device = True
                         self.backup(train_progress, step_tqdm.write)
-                        transferred_to_temp_device = True
 
                     if self.commands.get_and_reset_save_command():
-                        self.model.to(self.temp_device)
+                        if not transferred_to_temp_device:
+                            step_tqdm.write("self.model.to(self.temp_device)")
+                            self.model.to(self.temp_device)
+                            step_tqdm.write("self.model.to(self.temp_device) (DONE)")
+                            transferred_to_temp_device = True
                         self.save(train_progress, step_tqdm.write)
-                        transferred_to_temp_device = True
 
                     if transferred_to_temp_device:
+                        step_tqdm.write("self.model_setup.setup_train_device(self.model, self.config)")
                         self.model_setup.setup_train_device(self.model, self.config)
+                        step_tqdm.write("self.model_setup.setup_train_device(self.model, self.config) (DONE)")
 
                 self.callbacks.on_update_status("training")
 
@@ -679,7 +697,9 @@ class GenericTrainer(BaseTrainer):
                     if scaler:
                         scaler.scale(loss).backward()
                     else:
+                        step_tqdm.write("loss.backward")
                         loss.backward()
+                        step_tqdm.write("loss.backward (DONE)")
 
                     has_gradient = True
                     accumulated_loss += loss.item()
