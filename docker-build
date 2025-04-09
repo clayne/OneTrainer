@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+repo='OneTrainer'
+owner='Nerogar'
+remote='origin'
+branch='release'
+image='onetrainer'
+dockerfile='Dockerfile'
+
+while getopts "u:t:f:i:c:r:b:-:" opt; do
+	case $opt in
+	-) case "${OPTARG}" in
+		opt)   OPT=1 ;;
+		opt)   OPT="${!OPTIND}"; (( ++OPTIND )) ;;
+		opt=*) OPT="${OPTARG#opt=}" ;;
+	   esac ;;
+	r) repo="$OPTARG" ;;
+	u) owner="$OPTARG" ;;
+	b) branch="$OPTARG" ;;
+	c) commit="$OPTARG" ;;
+	i) image="$OPTARG" ;;
+	f) dockerfile="$OPTARG" ;;
+	t) tag="$OPTARG" ;;
+	?) exit -1 ;;
+	esac
+done; shift $((OPTIND - 1))
+
+# e.g. origin/local, upstream/release
+if [[ $branch =~ / ]]; then
+	remote="${branch/\/*}"
+	branch="${branch/*\/}"
+fi
+
+commit="$(git log -1 --format=%h $remote/$branch)"
+
+docker build \
+	--file $dockerfile \
+	-t "$image:${tag:-$branch}" \
+	${repo:+--build-arg REPO="$repo"} \
+	${owner:+--build-arg OWNER="$owner"} \
+	${branch:+--build-arg BRANCH="$branch"} \
+	${commit:+--build-arg COMMIT="$commit"} \
+	.
