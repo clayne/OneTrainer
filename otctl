@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+use Getopt::Long qw(:config no_ignore_case no_auto_abbrev bundling);
+use Carp qw(confess);
+use Data::Dumper;
+use Pod::Usage;
+use IPC::Run qw(run);
+
+use strict;
+use warnings FATAL => qw(all);
+
+local $SIG{__DIE__} = \&confess;
+local $Data::Dumper::Sortkeys = 1;
+local $Data::Dumper::Useqq = 1;
+
+our $VERSION = '$Id$';
+
+my $verbose = 0;
+
+sub main {
+	my $ret;
+	my $help = 0;
+	my $conf_file = qw(config.json);
+
+	local @ARGV = @_;
+	GetOptions(
+		'h|help' => \$help,
+		'verbose|v+' => \$verbose,
+		'conf|f=s' => \$conf_file,
+	) && (!$help && ($ret = 1));
+
+	$ret || pod2usage(-verbose => 2, -noperldoc => 1, -exitval => -1);
+
+	my $cmd = shift @ARGV or return 0;
+	if ($cmd eq 'run') {
+		my @cmd = ("python scripts/train.py --config-path '$conf_file'");
+		if ($^O =~ /cygwin/i) {
+			my $venv = 'venv/scripts/activate';
+			my @cmd = ('powershell', join(';', $venv, @cmd));
+			run(\@cmd);
+		} elsif ($^O =~ /linux/i) {
+			my $venv = 'source venv/scripts/activate';
+			my @cmd = (join(';', $venv, @cmd));
+			run(\@cmd);
+		}
+	}
+
+	return 1;
+}
+
+exit !main(@ARGV) unless (caller);
+
+__END__
