@@ -69,6 +69,14 @@ RUN --mount=type=cache,target=/root/.cache pip3 install "huggingface_hub[cli]"
 # nvitop
 RUN --mount=type=cache,target=/root/.cache pip3 install nvitop
 
+# Vast
+RUN --mount=type=cache,target=/root/.cache pip3 install vastai
+
+# Runpod
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    wget -qO- cli.runpod.net | bash
+
 ARG REPO="OneTrainer"
 ARG OWNER="Nerogar"
 ARG BRANCH="master"
