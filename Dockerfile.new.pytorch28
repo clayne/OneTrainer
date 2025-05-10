@@ -89,7 +89,9 @@ RUN git clone https://github.com/$OWNER/$REPO --branch $BRANCH \
 # Install OneTrainer
 RUN --mount=type=cache,target=/root/.cache cd $REPO \
 	&& python3 -m venv venv \
-	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && pip3 install -U --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128 && deactivate'
+	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate'
+RUN --mount=type=cache,target=/root/.cache cd $REPO \
+	&& bash -c 'source venv/bin/activate && pip3 install -U --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128 && deactivate'
 
 # Copy start script with exec permissions
 COPY --chmod=755 docker-start.sh /start.sh
