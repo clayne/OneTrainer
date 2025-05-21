@@ -28,7 +28,7 @@ rm -rf .git
 EOF
 
 # Install OneTrainer deps first
-RUN --mount=type=cache,id=python,target=/root/.cache <<EOF
+RUN --mount=type=cache,sharing=shared,mode=0755,id=python,target=/root/.cache <<EOF
 cd OneTrainer \
 	&& python3 -m venv venv \
 	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate' \
