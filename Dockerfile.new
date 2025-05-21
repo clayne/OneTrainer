@@ -82,14 +82,39 @@ ARG OWNER="Nerogar"
 ARG BRANCH="master"
 ARG COMMIT="HEAD"
 
-# Clone OneTrainer
-RUN git clone https://github.com/$OWNER/$REPO --branch $BRANCH \
-	&& git -C $REPO reset --hard $COMMIT
+# Checkout *only* python-specific dep files from repo
+RUN <<EOF
+git clone https://github.com/$OWNER/$REPO --branch $BRANCH --no-checkout --depth=1
 
-# Install OneTrainer
-RUN --mount=type=cache,sharing=shared,mode=0755,id=python,target=/root/.cache cd $REPO \
+cd $REPO
+for i in \
+	requirements.txt \
+	requirements-cuda.txt \
+	requirements-default.txt \
+	requirements-dev.txt \
+	requirements-global.txt \
+	requirements-rocm.txt
+do
+	git show $COMMIT:$i > $i
+done
+
+rm -rf .git
+EOF
+
+# Install OneTrainer deps first
+RUN --mount=type=cache,sharing=shared,mode=0755,id=python,target=/root/.cache <<EOF
+cd $REPO \
 	&& python3 -m venv venv \
 	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate'
+EOF
+
+# Checkout OneTrainer from git but preserve poetry created venv
+RUN <<EOF
+mv $REPO $REPO.old
+git clone https://github.com/$OWNER/$REPO --branch $BRANCH $REPO
+mv $REPO.old/venv $REPO
+rm -rf $REPO.old
+EOF
 
 # Copy start script with exec permissions
 COPY --chmod=755 docker-start.sh /start.sh
