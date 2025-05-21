@@ -77,17 +77,16 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     wget -qO- cli.runpod.net | bash
 
-ARG REPO="OneTrainer"
 ARG OWNER="Nerogar"
 ARG BRANCH="master"
 ARG COMMIT="HEAD"
 
 # Clone OneTrainer
-RUN git clone https://github.com/$OWNER/$REPO --branch $BRANCH \
-	&& git -C $REPO reset --hard $COMMIT
+RUN git clone https://github.com/$OWNER/OneTrainer --branch $BRANCH \
+	&& git -C OneTrainer reset --hard $COMMIT
 
 # Install OneTrainer
-RUN --mount=type=cache,target=/root/.cache cd $REPO \
+RUN --mount=type=cache,target=/root/.cache cd OneTrainer \
 	&& python3 -m venv venv \
 	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate'
 

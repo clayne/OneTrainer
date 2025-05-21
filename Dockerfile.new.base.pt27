@@ -4,16 +4,15 @@ FROM i860/trainer:base
 # /workspace is the default volume for Runpod & other hosts
 WORKDIR /workspace
 
-ARG REPO="OneTrainer"
 ARG OWNER="Nerogar"
 ARG BRANCH="master"
 ARG COMMIT="HEAD"
 
-# Install OneTrainer deps first
-RUN --mount=type=cache,id=python,target=/root/.cache <<EOF
-git clone https://github.com/$OWNER/$REPO --branch $BRANCH --no-checkout --depth=1
+# Checkout *only* python-specific dep files from repo
+RUN <<EOF
+git clone https://github.com/$OWNER/OneTrainer --branch $BRANCH --no-checkout --depth=1
 
-cd $REPO
+cd OneTrainer
 for i in \
 	requirements.txt \
 	requirements-cuda.txt \
@@ -24,19 +23,24 @@ for i in \
 do
 	git show $COMMIT:$i > $i
 done
-rm -rf .git
 
-python3 -m venv venv \
-	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate'
-bash -c 'source venv/bin/activate && pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 && deactivate'
+rm -rf .git
+EOF
+
+# Install OneTrainer deps first
+RUN --mount=type=cache,id=python,target=/root/.cache <<EOF
+cd OneTrainer \
+	&& python3 -m venv venv \
+	&& bash -c 'source venv/bin/activate && pip3 install -r requirements.txt && deactivate' \
+	&& bash -c 'source venv/bin/activate && pip3 install -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 && deactivate'
 EOF
 
 # Checkout OneTrainer from git but preserve poetry created venv
 RUN <<EOF
-mv $REPO $REPO.old
-git clone https://github.com/$OWNER/$REPO --branch $BRANCH $REPO
-mv $REPO.old/venv $REPO
-rm -rf $REPO.old
+mv OneTrainer OneTrainer.old
+git clone https://github.com/$OWNER/OneTrainer --branch $BRANCH OneTrainer
+mv OneTrainer.old/venv OneTrainer
+rm -rf OneTrainer.old
 EOF
 
 # Copy anything from build workspace to container workspace
